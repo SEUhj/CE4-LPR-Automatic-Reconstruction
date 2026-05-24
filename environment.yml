@@ -1,0 +1,12 @@
+name: ce4-lpr
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - tqdm
+  - jupyter
+  - notebook
