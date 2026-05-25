@@ -117,3 +117,5 @@ The submission version no longer depends on notebook execution order. Generated 
 If you use this code or the provided segment-level evaluation files in your research, please cite the original paper:
 
 **Automatic Reconstruction of Sparse Lunar Penetrating Radar Data from Chang'e-4 Rover**
+
+This paper is currently under publication processing. Full citation information, including the DOI, will be added once the paper is formally published.
