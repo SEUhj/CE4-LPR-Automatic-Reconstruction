@@ -1,0 +1,19 @@
+{
+  "corrupt": {
+    "split_row": 300,
+    "block_size": 500,
+    "trend_sigma": 200.0,
+    "width_factor": 12.0,
+    "coherence_threshold": 0.95,
+    "coherence_samples": 500,
+    "stability_power": 2.0
+  },
+  "segment": {
+    "threshold_ratio": 0.1,
+    "depth_buffer": 50,
+    "threshold_scale": 1.6,
+    "min_noise_len": 10,
+    "max_gap_fill": 30,
+    "min_final_len": 20
+  }
+}
