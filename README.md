@@ -96,7 +96,7 @@ The values in configs/reproduction_config.json follow the manuscript:
 - coherence samples: 500
 - stability power: 2
 - depth threshold ratio: 0.1
-- depth buffer: 50
+- depth buffer: 60
 - threshold scaling factor: 1.6
 - short-segment removal threshold: 10 traces
 - gap-fill threshold: 30 traces
