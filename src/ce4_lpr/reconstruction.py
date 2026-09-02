@@ -20,7 +20,7 @@ class SegmentConfig:
     min_final_len: int = 20
 
 
-def automatic_depth_cut(data: np.ndarray, ratio: float = 0.1, buffer: int = 50) -> int:
+def automatic_depth_cut(data: np.ndarray, ratio: float = 0.1, buffer: int = 60) -> int:
     """Find the depth where near-surface energy decays, then add a safety buffer."""
     mean_amp = np.mean(np.abs(data), axis=1)
     peak_idx = int(np.argmax(mean_amp))
