@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 from scipy.ndimage import sobel
 
 
+DepthScope = Literal["folder", "subfile"]
+
+
 @dataclass(frozen=True)
 class SegmentConfig:
     threshold_ratio: float = 0.1
-    depth_buffer: int = 50
+    depth_buffer: int = 60
     threshold_scale: float = 1.6
     min_noise_len: int = 10
     max_gap_fill: int = 30
@@ -101,8 +105,23 @@ def detect_valid_segments(
     cfg: SegmentConfig | None = None,
 ) -> tuple[list[tuple[int, int]], list[float], np.ndarray]:
     """Detect valid trace segments independently for each source file."""
-    cfg = cfg or SegmentConfig()
     variances = np.var(np.asarray(sobel_data, dtype=float), axis=0)
+    return detect_valid_segments_from_variance(variances, boundaries, cfg)
+
+
+def detect_valid_segments_from_variance(
+    variances: np.ndarray,
+    boundaries: list[int],
+    cfg: SegmentConfig | None = None,
+) -> tuple[list[tuple[int, int]], list[float], np.ndarray]:
+    """Detect valid segments from a precomputed trace-variance sequence."""
+    cfg = cfg or SegmentConfig()
+    variances = np.asarray(variances, dtype=float)
+    if variances.ndim != 1:
+        raise ValueError("variances must be a one-dimensional array")
+    if not boundaries or boundaries[0] != 0 or boundaries[-1] != variances.size:
+        raise ValueError("boundaries must span the complete trace-variance sequence")
+
     all_segments: list[tuple[int, int]] = []
     thresholds: list[float] = []
     final_mask = np.zeros_like(variances, dtype=bool)
@@ -122,6 +141,38 @@ def detect_valid_segments(
 def trace_variance(sobel_data: np.ndarray) -> np.ndarray:
     """Return trace-wise variance from Sobel-X data."""
     return np.var(np.asarray(sobel_data, dtype=float), axis=0)
+
+
+def trace_variance_by_depth_scope(
+    data: np.ndarray,
+    boundaries: list[int],
+    cfg: SegmentConfig | None = None,
+    scope: DepthScope = "subfile",
+) -> tuple[np.ndarray, list[int]]:
+    """Compute Sobel-X trace variance with one folder cut or independent sub-file cuts."""
+    cfg = cfg or SegmentConfig()
+    data = np.asarray(data, dtype=float)
+    if data.ndim != 2:
+        raise ValueError("data must be a samples-by-traces matrix")
+    if not boundaries or boundaries[0] != 0 or boundaries[-1] != data.shape[1]:
+        raise ValueError("boundaries must span all traces in data")
+
+    if scope == "folder":
+        cut_idx = automatic_depth_cut(data, cfg.threshold_ratio, cfg.depth_buffer)
+        return trace_variance(sobel_x_after_cut(data, cut_idx)), [cut_idx]
+    if scope != "subfile":
+        raise ValueError(f"Unsupported depth-processing scope: {scope}")
+
+    variances = np.empty(data.shape[1], dtype=float)
+    cut_indices: list[int] = []
+    for start, end in zip(boundaries[:-1], boundaries[1:]):
+        if start >= end:
+            raise ValueError("Each sub-file boundary interval must contain at least one trace")
+        local_data = data[:, start:end]
+        cut_idx = automatic_depth_cut(local_data, cfg.threshold_ratio, cfg.depth_buffer)
+        variances[start:end] = trace_variance(sobel_x_after_cut(local_data, cut_idx))
+        cut_indices.append(cut_idx)
+    return variances, cut_indices
 
 
 def extract_segments(data: np.ndarray, segments: list[tuple[int, int]], bad_indices: np.ndarray | None = None) -> tuple[np.ndarray, list[int]]:
