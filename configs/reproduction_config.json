@@ -10,7 +10,7 @@
   },
   "segment": {
     "threshold_ratio": 0.1,
-    "depth_buffer": 50,
+    "depth_buffer":60,
     "threshold_scale": 1.6,
     "min_noise_len": 10,
     "max_gap_fill": 30,
